@@ -131,12 +131,11 @@ const patchSVGGroup = (svg) => {
 // Add viewbox and preserveAspectRatio attributes as well as a Gaussian Blur filter to the SVG
 // When missing, add group (element with blur applied) using patchSVGGroup()
 // We initially worked with a proper DOM parser to manipulate the SVG's XML, but it was very opinionated about SVG syntax and kept introducing unwanted tags. So we had to resort to RegEx replacements
-const replaceSVGAttrs = (svg, { width, height }) => {
-  let blurStdDev = 12;
+const replaceSVGAttrs = (svg, { width, height }, { blurStdDev = 12 }) => {
   let blurFilterId = 'b';
   let newSVG = svg;
   if (svg.match(/<svg.*?><path.*?><g/) === null) {
-    blurStdDev = 55;
+    blurStdDev = (55/12) * blurStdDev;
     newSVG = patchSVGGroup(newSVG);
     blurFilterId = 'c';
   } else {
@@ -169,7 +168,7 @@ const main = (filename, options) => {
     runPrimitive(filename, options, primitive_output_file, img_dimensions);
     const primitive_output = readPrimitiveTempFile(primitive_output_file);
     const svgo_output = runSVGO(primitive_output);
-    const final_svg = replaceSVGAttrs(svgo_output, img_dimensions);
+    const final_svg = replaceSVGAttrs(svgo_output, img_dimensions, options);
     const svg_base64encoded = encodeBase64(final_svg);
 
     return { final_svg, svg_base64encoded, img_dimensions };
